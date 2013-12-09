@@ -12,7 +12,7 @@ public class GPGCli implements GPGBinding {
 
     private static GPGCli instance;
 
-    private final String GPG_PATH = "gpg2";
+    private final String GPG_PATH = "/data/data/info.guardianproject.gpg/app_opt/aliases/gpg2";
 
     public static GPGCli getInstance() {
         if(instance == null) {
@@ -213,8 +213,6 @@ public class GPGCli implements GPGBinding {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             Map<String, String> environment = pb.environment();
-            environment.put("PATH", environment.get("PATH") + ":/data/data/info.guardianproject.gpg/app_opt/aliases");
-            environment.put("LD_LIBRARY_PATH", environment.get("LD_LIBRARY_PATH") + ":/data/data/info.guardianproject.gpg/app_opt/lib:/data/data/info.guardianproject.gpg/lib");
             Process p = pb.start();
             p.waitFor();
             rawOutput = getProcessOutput(p);

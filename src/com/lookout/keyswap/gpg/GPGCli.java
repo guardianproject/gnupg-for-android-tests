@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class GPGCli implements GPGBinding {
+    public static final String TAG = "GPGCli";
 
     private static GPGCli instance;
 
@@ -22,12 +23,12 @@ public class GPGCli implements GPGBinding {
     }
 
     private GPGCli() {
-        Log.i("KeySwap", "GPGCli initialized");
+        Log.i(TAG, "GPGCli initialized");
     }
 
     public GPGKey getPublicKey(String keyId) {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-keys", keyId);
-        Log.i("KeySwap", "Got public key: " + keyId);
+        Log.i(TAG, "Got public key: " + keyId);
 
         Scanner scanner = new Scanner(rawList);
         GPGKey key = parseKey(scanner, "pub:.*");
@@ -38,7 +39,7 @@ public class GPGCli implements GPGBinding {
 
     public GPGKey getSecretKey(String keyId) {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-secret-keys", keyId);
-        Log.i("KeySwap", "Got secret key: " + keyId);
+        Log.i(TAG, "Got secret key: " + keyId);
 
         Scanner scanner = new Scanner(rawList);
         GPGKey key = parseKey(scanner, "sec:.*");
@@ -49,7 +50,7 @@ public class GPGCli implements GPGBinding {
 
     public ArrayList<GPGKey> getPublicKeys() {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-keys");
-        Log.i("KeySwap", "Got public keys: " + rawList);
+        Log.i(TAG, "Got public keys: " + rawList);
 
         ArrayList<GPGKey> keys = new ArrayList<GPGKey>();
         Scanner scanner = new Scanner(rawList);
@@ -64,7 +65,7 @@ public class GPGCli implements GPGBinding {
 
     public ArrayList<GPGKey> getSecretKeys() {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-secret-keys");
-        Log.i("KeySwap", "Got secret keys: " + rawList);
+        Log.i(TAG, "Got secret keys: " + rawList);
 
         ArrayList<GPGKey> keys = new ArrayList<GPGKey>();
         Scanner scanner = new Scanner(rawList);
@@ -160,37 +161,46 @@ public class GPGCli implements GPGBinding {
     public void exportPublicKeyring(String destination) {
         String output = Exec(GPG_PATH, "--yes", "--output", destination, "--export");
 
-        Log.i("KeySwap", "Public Keyring exported");
+        Log.i(TAG, "Public Keyring exported");
     }
 
     public void exportSecretKeyring(String destination) {
         String output = Exec(GPG_PATH, "--yes", "--output", destination, "--export-secret-keys");
 
-        Log.i("KeySwap", "Secret Keyring exported");
+        Log.i(TAG, "Secret Keyring exported");
     }
 
     public void exportKey(String destination, String keyId) {
         String outputPath = new File(destination, keyId + ".gpg").getAbsolutePath();
         Exec(GPG_PATH, "--yes", "--output", outputPath, "--export-secret-keys", keyId);
 
-        Log.i("KeySwap", keyId + " exported to " + outputPath);
+        Log.i(TAG, keyId + " exported to " + outputPath);
     }
 
-    public void importKey(String source) {
-        Exec(GPG_PATH, "--yes", "--allow-secret-key-import", "--import", source);
+    public void importKey(File source) {
+        try {
+            importKey(source.getCanonicalPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            importKey(source.getAbsolutePath());
+        }
+    }
 
-        Log.i("KeySwap", source + " imported");
+    public void importKey(String sourcePath) {
+        Exec(GPG_PATH, "--yes", "--allow-secret-key-import", "--import", sourcePath);
+
+        Log.i(TAG, sourcePath + " imported");
     }
 
     public void pushToKeyServer(String server, String keyId) {
         Exec(GPG_PATH, "--yes", "--key-server", server, "--send-key", keyId);
 
-        Log.i("KeySwap", keyId + " pushed to " + server);
+        Log.i(TAG, keyId + " pushed to " + server);
     }
 
     public String exportAsciiArmoredKey(String keyId) {
         String output = Exec(GPG_PATH, "--armor", "--export", keyId);
-        Log.i("KeySwap", keyId + " exported");
+        Log.i(TAG, keyId + " exported");
 
         return output;
     }
@@ -212,14 +222,13 @@ public class GPGCli implements GPGBinding {
         String rawOutput = "";
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
-            Map<String, String> environment = pb.environment();
             Process p = pb.start();
             p.waitFor();
             rawOutput = getProcessOutput(p);
         } catch(IOException e) {
-            Log.e("KeySwap", e.getMessage());
+            Log.e(TAG, e.getMessage());
         } catch (InterruptedException e) {
-            Log.e("KeySwap", e.getMessage());
+            Log.e(TAG, e.getMessage());
         }
         return rawOutput;
     }

@@ -10,6 +10,10 @@
 
     <uses-permission android:name="info.guardianproject.gpg.permission.READ_KEY_DETAILS" />
 
+    <instrumentation
+        android:name="android.test.InstrumentationTestRunner"
+        android:targetPackage="info.guardianproject.gpg.tests" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -25,6 +29,8 @@
             </intent-filter>
         </activity>
         <activity android:name="info.guardianproject.gpg.tests.ApgIntentsActivity" />
+
+        <uses-library android:name="android.test.runner" />
     </application>
 
 </manifest>

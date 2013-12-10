@@ -21,6 +21,7 @@ public class GpgCliTests extends AndroidTestCase {
     protected void setUp() throws Exception {
         Log.i(TAG, "setUp");
         super.setUp();
+        NativeHelper.setup(getContext());
         testFilePath = NativeHelper.app_test_files;
     }
 
@@ -29,17 +30,31 @@ public class GpgCliTests extends AndroidTestCase {
         super.tearDown();
     }
 
-    public void testImportKey() {
-        Log.i(TAG, "testImportKey");
-        List<GPGKey> before = gpgcli.getPublicKeys();
+    public void testImportPublicKeys() {
+        Log.i(TAG, "testImportPublicKeys");
         Log.i(TAG, "BEFORE");
+        List<GPGKey> before = gpgcli.getPublicKeys();
+        assertTrue("the keyring should be empty!", before.size() == 0);
         for (GPGKey key : before)
-            Log.i(TAG, "key: " + key.toString());
+            Log.i(TAG, "key: " + key.getKeyId());
         gpgcli.importKey(new File(testFilePath, "public-keys.pkr"));
         Log.i(TAG, "AFTER");
         List<GPGKey> after = gpgcli.getPublicKeys();
+        assertTrue("the keyring should have keys in it", after.size() == 12);
         for (GPGKey key : after)
-            Log.i(TAG, "key: " + key.toString());
+            Log.i(TAG, "key: " + key.getKeyId());
+
+    }
+
+    public void testForKeyPresence() {
+        Log.i(TAG, "testForKeyPresence");
+        List<GPGKey> keys = gpgcli.getPublicKeys();
+        for (GPGKey key : keys)
+            if (key.getFingerprint().equals("5E61C8780F86295CE17D86779F0FE587374BBE81")) {
+                assert true;
+                return;
+            }
+        assert false;
 
     }
 }
